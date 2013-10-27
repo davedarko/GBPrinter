@@ -1,7 +1,5 @@
 GBPrinter
 =========
-
-# Disclaimer
 This is based on the works and efforts of the guy(s) from furrtek.org and Miles Burton from milesburton.com 
 
 See the references here: 
