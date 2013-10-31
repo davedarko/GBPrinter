@@ -228,7 +228,14 @@ boolean sendPrint(uint8_t leftMargin, uint8_t rightMargin, uint8_t palette, uint
 
 
 /*
-A band consists of 40 tiles. A tile is an image consisting of 8x8 dots. Color of each dot is specified by a two-bit value, so a dot can be a color out of four. Actually, GB Printer prints only greyscale (monochrome) image, so possible colors are: white, light grey, dark grey, and black. A tile is represented by 16 bytes of data. The format of a tile is exactly same as that of GB display tile pattern, such as background tile, window tile, or sprite tile. 
+A band consists of 40 tiles. A tile is an image consisting of 8x8 dots. 
+Color of each dot is specified by a two-bit value, so a dot can be a color out of four. 
+Actually, GB Printer prints only greyscale (monochrome) image, 
+so possible colors are: white, light grey, dark grey, and black. 
+A tile is represented by 16 bytes of data. 
+The format of a tile is exactly same as that of GB display tile pattern, 
+such as background tile, window tile, or sprite tile. 
+The color for each pixel is set in 2 bytes with 1 bit.
  */
 
 // A band consists of two strips (2 strips, 20x strip. 40 tiles)
