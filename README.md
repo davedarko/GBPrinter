@@ -9,3 +9,5 @@ http://milesburton.com/Gameboy_Printer_with_Arduino
 - A character mode, so you can send text and it will generate it
 - a cleaned up version of the Picture transmitting
 - a processing sketch as an interface via bluetooth (as another github project)
+
+[![ScreenShot](https://raw.github.com/davedarko/GBPrinter/master/res/yt.png)](http://youtu.be/AGkFuFbOmJw)
