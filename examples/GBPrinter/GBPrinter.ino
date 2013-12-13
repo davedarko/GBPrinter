@@ -38,38 +38,6 @@ void loop() {
     }
   }
 
-  // Blackbar Test
-  if(cmd == 't') {
-    Serial.println("Init");        
-    sendInitialize();
-    getStatusCode();
-    CRC = 0;
-    Serial.println("Data");
-    CRC += beginData();
-
-    for(int i=0; i<640; ++i) {
-      CRC += 0xFF;
-      GBSerialOut(0xFF);
-    }
-
-    if(endData(CRC)) //0x27E06
-    { 
-      Serial.println("Data sent");
-    }
-    printStatusCode(-1);
-
-    Serial.println("Inq");        
-    sendInquiry();
-    Serial.println("Data");    
-    GBPCommand(GBData,0);
-    printStatusCode(-1);
-    Serial.println("Print");
-    sendPrint(1,3,0xE4,0x40);
-    printStatusCode(-1);
-
-    // sendInquiry();
-  }
-
 // Blackbar Test
   if(cmd == 'g') {
     Serial.println("Init");        
@@ -80,7 +48,7 @@ void loop() {
     CRC += beginData();
 
     for(int i=0; i<640; ++i) {
-      uint8_t dat = row[i];
+      uint8_t dat = hadl[i];
       CRC += dat; //0xFF;
 
       //GBSerialOut(0xFF);
