@@ -1,6 +1,7 @@
 GBPrinter
 =========
 This library for Arduino is based on the works and efforts of the guy(s) from furrtek.org and Miles Burton from milesburton.com 
+To use it, simply copy the folder in to the libraries folder in your sketchbook. Let me know if something is not working, I will try to help.
 
 See the references here: 
 http://milesburton.com/Gameboy_Printer_with_Arduino
