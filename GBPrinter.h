@@ -33,6 +33,7 @@ extern uint8_t alphabet[475];
 // GBIn needs 15kohm pullup (5v).
 void setupPrinter(int in, int out, int clock);
 
+void initPrinter();
 
 void printStatusCode(int result);
 

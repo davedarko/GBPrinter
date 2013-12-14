@@ -1,5 +1,8 @@
 /* This is based on the works of Miles Burton and the furrtek gang/guy.
- * I made this a library for easier integration.
+ * I made this a library for easier integration into sketches
+ * TODO: 
+ * TextToPrint ( thats what the alphabet array is for)
+ * 
  * 
  * Byte1 0x0101 0101
  * Byte2 0x0011 0011
@@ -7,23 +10,23 @@
  * 
  * http://www.milesburton.com/Gameboy_Printer_with_Arduino
  */
-
+ 
 #include <GBPrinter.h>
-
-void setup() {
-  setupPrinter(GBIn, GBOut, GBClock);
-  Serial.begin(9600);
-  Serial.println("Gameboy Printer for Arduino");
-}
-
-uint8_t buffer[64];
 
 //uint8_t c,b,cmd,repl,buffer[64];
 uint8_t cmd;
 uint16_t CRC;
 
+void setup() {
+  setupPrinter(GBIn, GBOut, GBClock);
+  initPrinter();
+  Serial.begin(9600);
+  delay(200);
+  Serial.println("Gameboy Printer for Arduino");
+}
+
 void loop() {
-  //serialCommand = Serial.read();
+  
   cmd = Serial.read();
 
   // connection Test
@@ -38,21 +41,45 @@ void loop() {
     }
   }
 
-// Blackbar Test
+  if (cmd == 'A') {
+    printText("A");  
+  }
+
+  if(cmd == 'h') {
+    hadCon();
+  }
+// Data Out flush row data set 4 times
   if(cmd == 'g') {
     Serial.println("Init");        
     sendInitialize();
     getStatusCode();
+
+    for (int j=0; j<4; j++) {
+      // each row is started like this
+      sendRow(hadl);
+      // and ends like this
+    }
+    
+    Serial.println("Inq");        
+    sendInquiry();
+    
+    Serial.println("Data"); 
+    GBPCommand(GBData,0);
+    printStatusCode(-1);
+    Serial.println("Print");
+    sendPrint(1,3,0xE4,0x40);
+    printStatusCode(-1);
+  }
+}
+
+void sendRow (uint8_t row2send[]) {
     CRC = 0;
     Serial.println("Data");
     CRC += beginData();
-
     for(int i=0; i<640; ++i) {
-      uint8_t dat = hadl[i];
-      CRC += dat; //0xFF;
-
-      //GBSerialOut(0xFF);
-      GBSerialOut(dat);
+      uint8_t cmd = row2send[i];
+      CRC += cmd;
+      GBSerialOut(cmd);
     }
 
     if(endData(CRC)) //0x27E06
@@ -60,137 +87,68 @@ void loop() {
       Serial.println("Data sent");
     }
     printStatusCode(-1);
+}
 
-    Serial.println("Inq");        
-    sendInquiry();
-    Serial.println("Data");    
-    GBPCommand(GBData,0);
-    printStatusCode(-1);
-    Serial.println("Print");
-    sendPrint(1,3,0xE4,0x40);
-    printStatusCode(-1);
-
-    // sendInquiry();
+// prints stored logo
+void hadCon () {
+  Serial.println("Init");        
+  sendInitialize();
+  getStatusCode();
+  sendRow(hadl);
   }
+  
+  Serial.println("Inq");        
+  sendInquiry();
+  
+  Serial.println("Data"); 
+  GBPCommand(GBData,0);
+  printStatusCode(-1);
+  Serial.println("Print");
+  sendPrint(1,3,0xE4,0x40);
+  printStatusCode(-1);
+}
 
-  // Manage printing
-  if (cmd == '!') {
-    GBSerialOut(0x88);
-    GBSerialOut(0x33);
-    GBSerialOut(0x01);
-    GBSerialOut(0x00);
-    GBSerialOut(0x00);
-    GBSerialOut(0x00);
-    GBSerialOut(0x01);
-    GBSerialOut(0x00);
-    getAcknowledgement();
-    //SerialPut(repl);
-    getStatusCode();
-    //SerialPut(repl);
+// Check for shorted RX/TX
+void initPrinter() {
+  int TX = 1;
+  int RX = 0;
+  int buttonState = 0;
+  pinMode(RX, INPUT);   // RX    
+  pinMode(TX, OUTPUT);  // TX
+  digitalWrite(TX, LOW); 
+  buttonState = digitalRead(RX);
+  if (buttonState == LOW) hadCon();
+}
 
-    GBSerialOut(0x88);
-    GBSerialOut(0x33);
-    GBSerialOut(0x04);
-    GBSerialOut(0x00);
-    GBSerialOut(0x80);
-    GBSerialOut(0x02);
-    CRC = 0x86;
-
-    for (int b=0;b<10;b++) {
-      Serial.print('a');
-
-      for (int c=0;c<64;c++) {
-        buffer[c] = Serial.read();
+// cleartext to printer command
+void printText (String c) {
+  uint8_t printRow[640];
+  for (int iletter = 0; iletter<c.length(); iletter++) {
+    uint8_t car = c[iletter];
+    
+    if (car>31 && car<127) {
+/*      Serial.write(car);
+      Serial.print(": ");
+      Serial.println(car, DEC);
+      
+       for (int  i= 0; i<5; i++) {
+        Serial.print((car-32)*5+i);
+        Serial.print("\t");
       }
-
-      for (int c=0;c<64;c++) {
-        cmd = buffer[c];
-        GBSerialOut(cmd);
-        CRC += cmd;
+      Serial.println();
+      
+  */    
+      for (int  i= 0; i<5; i++) {
+//        Serial.print((car-31)*5+i);
+ //       Serial.print(": ");
+      //  uint8_t b = alphabet[(car-32)*5+i];
+//        Serial.print(b, HEX);
+     //   print_binary(b, 8);
+        Serial.println();
       }
+    //  Serial.println();
+      Serial.println();
+
     }
-
-    GBSerialOut((uint8_t)CRC & 0xFF);			// CRC Low
-    GBSerialOut((CRC & 0xFF00)>>8);				// CRC High
-    getAcknowledgement();
-    //SerialPut(repl);
-    getStatusCode();
-    //SerialPut(repl);
-
-
-
-    delay(10); 		// 131: répond 4 au lieu de 8, 265 timeout (0)
-
-    GBSerialOut(0x88);	// Data vide
-    GBSerialOut(0x33);
-    GBSerialOut(0x04);
-    GBSerialOut(0x00);
-    GBSerialOut(0x00);
-    GBSerialOut(0x00);
-    GBSerialOut(0x04);
-    GBSerialOut(0x00);
-     getAcknowledgement();
-    //SerialPut(repl);
-    getStatusCode();
-    //SerialPut(repl);
-
-    GBSerialOut(0x88);	// Print
-    GBSerialOut(0x33);
-    GBSerialOut(0x02);
-    GBSerialOut(0x00);
-    GBSerialOut(0x04);
-    GBSerialOut(0x00);
-
-    CRC = 6;
-    Serial.print('1');
-    for (int c=0;c<4;c++) {
-      buffer[c] = Serial.read();
-    }
-
-    for (int c=0;c<4;c++) {
-      cmd = buffer[c];
-      GBSerialOut(cmd);
-      CRC += cmd;
-    }
-
-    GBSerialOut((uint8_t)CRC & 0xFF);			// CRC Low
-    GBSerialOut((CRC & 0xFF00)>>8);				// CRC High
-
-    getAcknowledgement();
-    //SerialPut(repl);
-    getStatusCode();
-    //SerialPut(repl);
-
-    while(1) {
-      GBSerialOut(0x88);	// Status
-      GBSerialOut(0x33);
-      GBSerialOut(0x0F);
-      GBSerialOut(0x00);
-      GBSerialOut(0x00);
-      GBSerialOut(0x00);
-      GBSerialOut(0x0F);
-      GBSerialOut(0x00);
-      GBSerialOut(0);
-      if (GBSerialOut(0) & 2) break;
-      delay(100);
-    }
-    Serial.print('P');
-
-    while(1) {
-      GBSerialOut(0x88);	// Status
-      GBSerialOut(0x33);
-      GBSerialOut(0x0F);
-      GBSerialOut(0x00);
-      GBSerialOut(0x00);
-      GBSerialOut(0x00);
-      GBSerialOut(0x0F);
-      GBSerialOut(0x00);
-      GBSerialOut(0);
-      if (!(GBSerialOut(0) & 2)) break;
-      delay(100);
-    }
-    Serial.print('O');
-
   }
-  // End Printing
 }
