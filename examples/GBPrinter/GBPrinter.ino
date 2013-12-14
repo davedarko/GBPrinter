@@ -262,6 +262,7 @@ void initPrinter() {
   pinMode(TX, OUTPUT);  // TX
   digitalWrite(TX, LOW); 
   buttonState = digitalRead(RX);
+  delay(200);
   if (buttonState == LOW) hadCon();
 }
 
