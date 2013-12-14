@@ -34,7 +34,7 @@ uint8_t row7[640];
 
 void setup() {
   setupPrinter(GBIn, GBOut, GBClock);
-//  initPrinter();
+  initPrinter();
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for Leonardo only
