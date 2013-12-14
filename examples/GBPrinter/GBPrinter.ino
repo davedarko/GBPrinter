@@ -16,59 +16,178 @@
 //uint8_t c,b,cmd,repl,buffer[64];
 uint8_t cmd;
 uint16_t CRC;
+uint8_t buffer[64];
+/*
+  copy the hex output from http://davedarko.de/gameboy.php here
+  but make sure your arduino really got the byte size memory
+  I "bricked" a fake arduino uploading a script that was supposed to be 
+  smaller then the max amount.
+*/
+uint8_t row0[640];
+uint8_t row1[640];
+uint8_t row2[640];
+uint8_t row3[640];
+uint8_t row4[640];
+uint8_t row5[640];
+uint8_t row6[640];
+uint8_t row7[640];
 
 void setup() {
   setupPrinter(GBIn, GBOut, GBClock);
-  initPrinter();
+//  initPrinter();
   Serial.begin(9600);
-  delay(200);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
   Serial.println("Gameboy Printer for Arduino");
 }
 
 void loop() {
-  
-  cmd = Serial.read();
+  if (Serial.available() > 0) {
 
-  // connection Test
-  if (cmd == '?') {
+    cmd = Serial.read();
 
-    if (sendInitialize()) {
+    // connection Test
+    if (cmd == '?') {
+
+      if (sendInitialize()) {
+        getStatusCode();
+        Serial.print('1');
+      } 
+      else {
+        Serial.print('0');
+      }
+    }
+
+    if (cmd == 'A') {
+      printText("A");  
+    }
+
+    if(cmd == 'h') {
+      hadCon();
+    }
+
+    if (cmd=='d') {
+      ddimg(); 
+    }
+    // Manage printing
+    if (cmd == '!') {
+      GBSerialOut(0x88);
+      GBSerialOut(0x33);
+      GBSerialOut(0x01);
+      GBSerialOut(0x00);
+      GBSerialOut(0x00);
+      GBSerialOut(0x00);
+      GBSerialOut(0x01);
+      GBSerialOut(0x00);
+      getAcknowledgement();
+      //SerialPut(repl);
       getStatusCode();
+      //SerialPut(repl);
+
+      GBSerialOut(0x88);
+      GBSerialOut(0x33);
+      GBSerialOut(0x04);
+      GBSerialOut(0x00);
+      GBSerialOut(0x80);
+      GBSerialOut(0x02);
+      CRC = 0x86;
+
+      for (int b=0;b<10;b++) {
+        Serial.print('a');
+
+        for (int c=0;c<64;c++) {
+          buffer[c] = Serial.read();
+        }
+
+        for (int c=0;c<64;c++) {
+          cmd = buffer[c];
+          GBSerialOut(cmd);
+          CRC += cmd;
+        }
+      }
+
+      GBSerialOut((uint8_t)CRC & 0xFF);     // CRC Low
+      GBSerialOut((CRC & 0xFF00)>>8);       // CRC High
+      getAcknowledgement();
+      //SerialPut(repl);
+      getStatusCode();
+      //SerialPut(repl);
+
+
+
+      delay(10);    // 131: répond 4 au lieu de 8, 265 timeout (0)
+
+      GBSerialOut(0x88);  // Data vide
+      GBSerialOut(0x33);
+      GBSerialOut(0x04);
+      GBSerialOut(0x00);
+      GBSerialOut(0x00);
+      GBSerialOut(0x00);
+      GBSerialOut(0x04);
+      GBSerialOut(0x00);
+       getAcknowledgement();
+      //SerialPut(repl);
+      getStatusCode();
+      //SerialPut(repl);
+
+      GBSerialOut(0x88);  // Print
+      GBSerialOut(0x33);
+      GBSerialOut(0x02);
+      GBSerialOut(0x00);
+      GBSerialOut(0x04);
+      GBSerialOut(0x00);
+
+      CRC = 6;
       Serial.print('1');
-    } 
-    else {
-      Serial.print('0');
+      for (int c=0;c<4;c++) {
+        buffer[c] = Serial.read();
+      }
+
+      for (int c=0;c<4;c++) {
+        cmd = buffer[c];
+        GBSerialOut(cmd);
+        CRC += cmd;
+      }
+
+      GBSerialOut((uint8_t)CRC & 0xFF);     // CRC Low
+      GBSerialOut((CRC & 0xFF00)>>8);       // CRC High
+
+      getAcknowledgement();
+      //SerialPut(repl);
+      getStatusCode();
+      //SerialPut(repl);
+
+      while(1) {
+        GBSerialOut(0x88);  // Status
+        GBSerialOut(0x33);
+        GBSerialOut(0x0F);
+        GBSerialOut(0x00);
+        GBSerialOut(0x00);
+        GBSerialOut(0x00);
+        GBSerialOut(0x0F);
+        GBSerialOut(0x00);
+        GBSerialOut(0);
+        if (GBSerialOut(0) & 2) break;
+        delay(100);
+      }
+      Serial.print('P');
+
+      while(1) {
+        GBSerialOut(0x88);  // Status
+        GBSerialOut(0x33);
+        GBSerialOut(0x0F);
+        GBSerialOut(0x00);
+        GBSerialOut(0x00);
+        GBSerialOut(0x00);
+        GBSerialOut(0x0F);
+        GBSerialOut(0x00);
+        GBSerialOut(0);
+        if (!(GBSerialOut(0) & 2)) break;
+        delay(100);
+      }
+      Serial.print('O');
     }
-  }
-
-  if (cmd == 'A') {
-    printText("A");  
-  }
-
-  if(cmd == 'h') {
-    hadCon();
-  }
-// Data Out flush row data set 4 times
-  if(cmd == 'g') {
-    Serial.println("Init");        
-    sendInitialize();
-    getStatusCode();
-
-    for (int j=0; j<4; j++) {
-      // each row is started like this
-      sendRow(hadl);
-      // and ends like this
-    }
-    
-    Serial.println("Inq");        
-    sendInquiry();
-    
-    Serial.println("Data"); 
-    GBPCommand(GBData,0);
-    printStatusCode(-1);
-    Serial.println("Print");
-    sendPrint(1,3,0xE4,0x40);
-    printStatusCode(-1);
   }
 }
 
@@ -95,8 +214,34 @@ void hadCon () {
   sendInitialize();
   getStatusCode();
   sendRow(hadl);
-  }
   
+  Serial.println("Inq");        
+  sendInquiry();
+  
+  Serial.println("Data"); 
+  GBPCommand(GBData,0);
+  printStatusCode(-1);
+  Serial.println("Print");
+  sendPrint(1,3,0xE4,0x40);
+  printStatusCode(-1);
+}
+
+void ddimg () {
+  Serial.println("Init");        
+  sendInitialize();
+  getStatusCode();
+  
+  //uncomment this if your arduino has the power
+  /*
+  sendRow(row0);
+  sendRow(row1); 
+  sendRow(row2); 
+  sendRow(row3);
+  sendRow(row4);
+  sendRow(row5);
+  sendRow(row6);
+  sendRow(row7);  
+  /**/
   Serial.println("Inq");        
   sendInquiry();
   
