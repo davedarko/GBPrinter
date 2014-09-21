@@ -12,7 +12,7 @@ http://furrtek.free.fr/index.php?p=crea&a=gbpcable&i=2
 - hardcoded blocks of 640bytes are printable - to see in the hadCon() function
 
 # Where does one get those blocks?
-To get those you can go to http://davedarko.de/gameboy.php and try out my picture preparator - upload or draw something, print and wait for that buggy Java Application - refresh the site, klick on your link and add "&format=bin" to it, you should see the generated HEX stuff. This should generate 8 printable rows, which I could not test cause my chinese arduino atmega328 boards only have 6500-ish bytes - I guess that is why they are so cheap. I tested 4 and all crashed. Try connecting RX and TX before you start the arduino!
+To get those you can go to http://davedarko.com/gameboy.php and try out my picture preparator - upload or draw something, print and wait for that buggy Java Application - refresh the site, klick on your link and add "&format=bin" to it, you should see the generated HEX stuff. This should generate 8 printable rows, which I could not test cause my chinese arduino atmega328 boards only have 6500-ish bytes - I guess that is why they are so cheap. I tested 4 and all crashed. Try connecting RX and TX before you start the arduino!
 
 # ToDo
 - A character mode, so you can send text and it will generate the print
