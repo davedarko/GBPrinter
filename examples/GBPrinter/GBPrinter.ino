@@ -18,7 +18,7 @@ uint8_t cmd;
 uint16_t CRC;
 uint8_t buffer[64];
 /*
-  copy the hex output from http://davedarko.de/gameboy.php here
+  copy the hex output from http://davedarko.com/gameboy.php here
   but make sure your arduino really got the byte size memory
   I "bricked" a fake arduino uploading a script that was supposed to be 
   smaller then the max amount.
