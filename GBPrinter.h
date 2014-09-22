@@ -14,6 +14,7 @@
 #define GBData 0x04
 #define GBPrint 0x02
 #define GBInquiry 0x0f
+#define GBStatus  0x00
 
 #define MarginNone 0x0
 #define MarginMin 0x1

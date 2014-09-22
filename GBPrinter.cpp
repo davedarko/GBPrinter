@@ -196,11 +196,14 @@ boolean GBPCommand(uint8_t command, uint16_t bodyLength) {
   // 0x88 // Magic
   // 0x33 // Magic
   // 0x01 // Command
+  // 0x00 // Compression code
   // 0x00 // Length
   // 0x00 //Length
-  // 0x01 // Sum of everything bar magic packet
+  // 0x01 // chk low
+  // 0x00 // chk high
 
   sendChecksum(bodyLength + command); // GBPCommand CRC
+
   result = getAcknowledgement();
 
   return result;
@@ -217,7 +220,8 @@ void sendSync()
 /*
 A Header consists of four bytes. 
  The first byte in the Header is a command code, and the second is a compression indicator.
- Third and fourth bytes forms a 16 bit integer (in LSB-first byte order, i.e., the third byte is the lower 8 bits and the fourth the higher) 
+ Third and fourth bytes forms a 16 bit integer 
+ (in LSB-first byte order, i.e., the third byte is the lower 8 bits and the fourth the higher) 
  representing the length of the Body of the command packet in bytes. 
  This value may be zero to indicate an empty Body. 
  */
@@ -248,6 +252,7 @@ void sendChecksum(uint16_t checksum)
   // 0000 0000  
   GBSerialOut(checksum); // Lower 8 bits
   GBSerialOut(checksum>>8); // Higher 8 bits
+
 }
 
 /*
@@ -262,9 +267,13 @@ boolean sendInitialize()
 }
 
 /*
-A command packet whose command code is set to 0x0F is an Inquiry command. The compression indicator of the Inquiry command is set to zero (0x00.) 
- The length field is always set to zero (0x00 0x00,) to indicate the Body in the command is empty. The purpose of Inquiry command is to make GB Printer to notify its status to the GB. So, this command is suitable to be used after a Print command or before an Initialize command. 
- However, unlike other commands, Inquiry command may be issued at any time. The GB Printer is expected to respond to an Inquiry command always. 
+A command packet whose command code is set to 0x0F is an Inquiry command. 
+The compression indicator of the Inquiry command is set to zero (0x00.) 
+ The length field is always set to zero (0x00 0x00,) to indicate the Body in the command is empty. 
+ The purpose of Inquiry command is to make GB Printer to notify its status to the GB. So, 
+ this command is suitable to be used after a Print command or before an Initialize command. 
+ However, unlike other commands, Inquiry command may be issued at any time. 
+ The GB Printer is expected to respond to an Inquiry command always. 
  
  */
 uint8_t sendInquiry()
@@ -387,7 +396,9 @@ boolean getAcknowledgement()
  */
 uint8_t getStatusCode()
 {
-  return GBSerialOut(0); // Wait for confirmation  
+  uint8_t repl = GBSerialOut(0);
+
+  return repl; // Wait for confirmation  
 }
 
 
