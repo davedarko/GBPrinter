@@ -4,6 +4,7 @@
 </head>
 <body>
 <div id="canvas_area"></div>
+<input type="file" id="fileUpload" accept="image/*" /><br />
 <img src="123.jpg" id="img" width="160px" style="border:1px solid #f06;" class="img">
 <canvas id="canvas" width="160" height="128" style="border:1px solid #f06;" class="img"></canvas>
 <div id="response"></div>
@@ -24,13 +25,30 @@
 <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
 
 <script>
+function readURL(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            $('#img').attr('src', e.target.result);
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+$('#fileUpload').change(function() {
+  readURL(this);
+
+});
+
 function supports_canvas() {
   return !!document.createElement('canvas').getContext;
 }
 
 if (supports_canvas()) {
-	console.log("yes");
-	//draw_b();
+  console.log("yes");
+  //draw_b();
 }
 
 function draw() {
@@ -50,13 +68,13 @@ function draw() {
 
   // erstmal schwarz weiss
   for (var y=0; y<img.height; y++) {
-  	for (var x = 0; x<img.width; x++) {
-  		var data = context.getImageData(x,y,1,1).data;
+    for (var x = 0; x<img.width; x++) {
+      var data = context.getImageData(x,y,1,1).data;
       var oldpixel = parseInt((data[0] + data[1] + data[2]) / 3);
       
       context.fillStyle = 'rgba(' + oldpixel + ',' + oldpixel + ',' + oldpixel + ',' + 1 + ')';
       context.fillRect(x, y, 1, 1);
-  	}	
+    } 
   }
 
   var txt = "";
@@ -87,7 +105,7 @@ function draw() {
   }
     img2.src = canvas.toDataURL();
     ta_hex.value = txt;
-
+    context.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function map (oldpixel) {
@@ -126,7 +144,7 @@ $('#sendbutton').click(function (){
   $.ajax({
     type: "POST",
     async: false,
-    url: "gba.php",
+    url: "../gba.php",
     data: [
       {
         name: 'name',
@@ -139,7 +157,7 @@ $('#sendbutton').click(function (){
     ],
     success: function(responsedata) {
       console.log(responsedata);
-      var link = 'converter.php?file='+responsedata+'&color=ffddbb';
+      var link = '/gbapp_converter.php?file='+responsedata+'&color=ffddbb';
       var ahref = '<a href="'+link+'">'+responsedata+'</a>';
       
       $('#response').html(ahref);
